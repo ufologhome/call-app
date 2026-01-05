@@ -1,8 +1,12 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         google()
         mavenCentral()
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id "com.android.application" version "8.1.1"
     }
 }
 
@@ -12,7 +16,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         flatDir {
-            dirs 'app/libs'
+            dirs "app/libs"
         }
     }
 }
