@@ -1,0 +1,38 @@
+name: Build Android APK 33444
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Download WebRTC AAR
+        run: |
+          mkdir -p app/libs
+          curl -L -o app/libs/google-webrtc-1.0.32006.aar \
+            "http://nyamusik.ru/vid/google-webrtc-1.0.32006.aar"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CallApp-APK
+          path: app/build/outputs/apk/debug/*.apk
