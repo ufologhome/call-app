@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startWebSocket() {
-        ws = object : WebSocketClient(URI("ws://YOUR_PC_IP:8765")) {
+        ws = object : WebSocketClient(URI("ws://192.168.0.150:8765")) {
 
             override fun onOpen(handshakedata: ServerHandshake?) {
                 Log.d("WS", "Connected")
