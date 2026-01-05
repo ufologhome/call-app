@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import org.webrtc.*
+import org.webrtc.audio.JavaAudioDeviceModule
 import java.net.URI
 
 class MainActivity : AppCompatActivity() {
@@ -28,16 +29,12 @@ class MainActivity : AppCompatActivity() {
 
         requestPermissions()
 
-        PeerConnectionFactory.initialize(
-            PeerConnectionFactory.InitializationOptions.builder(this).createInitializationOptions()
-        )
-
-        factory = PeerConnectionFactory.builder().createPeerConnectionFactory()
-
         findViewById<Button>(R.id.btnCall).setOnClickListener {
             startWebSocket()
         }
     }
+
+    // ===== PERMISSIONS =====
 
     private fun requestPermissions() {
         ActivityCompat.requestPermissions(
@@ -46,6 +43,41 @@ class MainActivity : AppCompatActivity() {
             1
         )
     }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 1 &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            initWebRTC()
+        }
+    }
+
+    // ===== WEBRTC INIT =====
+
+    private fun initWebRTC() {
+        PeerConnectionFactory.initialize(
+            PeerConnectionFactory.InitializationOptions.builder(this)
+                .createInitializationOptions()
+        )
+
+        val audioDeviceModule = JavaAudioDeviceModule.builder(this)
+            .setUseHardwareAcousticEchoCanceler(true)
+            .setUseHardwareNoiseSuppressor(true)
+            .createAudioDeviceModule()
+
+        factory = PeerConnectionFactory.builder()
+            .setAudioDeviceModule(audioDeviceModule)
+            .createPeerConnectionFactory()
+    }
+
+    // ===== SIGNALING =====
 
     private fun startWebSocket() {
         ws = object : WebSocketClient(URI("ws://192.168.0.150:8765")) {
@@ -56,7 +88,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onMessage(message: String) {
-                Log.d("WS", "Message: $message")
                 handleSignal(message)
             }
 
@@ -70,6 +101,8 @@ class MainActivity : AppCompatActivity() {
         }
         ws.connect()
     }
+
+    // ===== PEER CONNECTION =====
 
     private fun createPeerConnection(isCaller: Boolean) {
         val config = PeerConnection.RTCConfiguration(iceServers)
@@ -93,9 +126,8 @@ class MainActivity : AppCompatActivity() {
 
         val audioSource = factory.createAudioSource(MediaConstraints())
         val audioTrack = factory.createAudioTrack("audio", audioSource)
-        val stream = factory.createLocalMediaStream("stream")
-        stream.addTrack(audioTrack)
-        peerConnection?.addStream(stream)
+
+        peerConnection?.addTrack(audioTrack)
 
         if (isCaller) {
             peerConnection?.createOffer(object : SdpObserver {
@@ -109,6 +141,8 @@ class MainActivity : AppCompatActivity() {
             }, MediaConstraints())
         }
     }
+
+    // ===== SIGNAL HANDLER =====
 
     private fun handleSignal(msg: String) {
         val parts = msg.split("|")
