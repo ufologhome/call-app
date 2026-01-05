@@ -3,19 +3,22 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
-        android:usesCleartextTraffic="true"
         android:allowBackup="true"
-        android:label="CallApp">
-        
-        <activity android:name=".MainActivity"
+        android:usesCleartextTraffic="true"
+        android:label="CallApp"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        <activity
+            android:name="com.example.callapp.MainActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
         </activity>
 
     </application>
